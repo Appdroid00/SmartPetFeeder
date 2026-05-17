@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1">
+
+<title>
+Smart Pet Feeder
+</title>
+
+<link rel="stylesheet"
+href="style.css">
+
+<link rel="manifest"
+href="manifest.json">
+
+<meta name="theme-color"
+content="#2f7a4f">
+
+</head>
+
+
+
+<body>
+
+
+<div class="app">
+
+
+<div class="header">
+
+🐾 Smart Pet Feeder
+
+</div>
+
+
+
+
+<!-- DEVICE -->
+
+<div class="card">
+
+<div class="device-row">
+
+<div>
+
+<small>
+
+Device
+
+</small>
+
+<h3>
+
+FEEDER001
+
+</h3>
+
+</div>
+
+
+
+<div>
+
+<small>
+
+Status
+
+</small>
+
+<h3 id="deviceStatus">
+
+🔴 OFFLINE
+
+</h3>
+
+</div>
+
+</div>
+
+</div>
+
+
+
+
+
+<!-- FEED -->
+
+<div class="card">
+
+<button
+id="feedBtn"
+class="primary">
+
+🍽 Feed Now
+
+</button>
+
+</div>
+
+
+
+
+
+<!-- LAST FED -->
+
+<div class="card">
+
+<div>
+
+Last Fed
+
+</div>
+
+<div id="lastFed">
+
+None
+
+</div>
+
+</div>
+
+
+
+
+
+
+<!-- SCHEDULE -->
+
+<div class="card">
+
+<h3>
+
+Schedule
+
+</h3>
+
+
+
+<div class="row">
+
+<input
+type="time"
+id="time1">
+
+<span
+id="status1"
+class=
+"status pending">
+
+Pending
+
+</span>
+
+</div>
+
+
+
+
+<div class="row">
+
+<input
+type="time"
+id="time2">
+
+<span
+id="status2"
+class=
+"status pending">
+
+Pending
+
+</span>
+
+</div>
+
+
+
+
+<div class="row">
+
+<input
+type="time"
+id="time3">
+
+<span
+id="status3"
+class=
+"status pending">
+
+Pending
+
+</span>
+
+</div>
+
+
+
+<button
+onclick="save()"
+id="saveBtn"
+class="primary">
+
+Save Schedule
+
+</button>
+
+</div>
+
+
+
+
+
+<!-- LOGS -->
+
+<div class="logs-card">
+
+<div class=
+"logs-header">
+
+📜 Feeding Logs
+
+</div>
+
+
+<table
+style=
+"width:100%;
+text-align:center;">
+
+<thead>
+
+<tr>
+
+<th>
+
+Type
+
+</th>
+
+<th>
+
+Date
+
+</th>
+
+<th>
+
+Time
+
+</th>
+
+</tr>
+
+</thead>
+
+
+
+<tbody
+id="feedTable">
+
+<tr>
+
+<td colspan="3">
+
+No data
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+
+</div>
+
+
+
+
+<div id="toast">
+
+<span id="toastIcon">
+
+</span>
+
+<span id="toastText">
+
+</span>
+
+</div>
+
+
+
+
+
+<!-- FIREBASE FIRST -->
+
+<script src=
+"https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js">
+</script>
+
+
+<script src=
+"https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js">
+</script>
+
+
+
+<script>
+
+const firebaseConfig={
+
+apiKey:
+"AIzaSyD48EtXh7KIrTqM-wXzglaPXlVoQkABMjM",
+
+databaseURL:
+"https://smartpetfeeder-a7515-default-rtdb.asia-southeast1.firebasedatabase.app",
+
+projectId:
+"smartpetfeeder-a7515"
+
+};
+
+
+firebase.initializeApp(
+firebaseConfig);
+
+const db=
+firebase.database();
+
+
+
+
+// ONLINE OFFLINE
+
+db.ref(
+"devices/FEEDER001/status")
+
+.on(
+
+"value",
+
+(snapshot)=>{
+
+let status=
+snapshot.val();
+
+let txt=
+document.getElementById(
+"deviceStatus");
+
+txt.innerHTML=
+
+status=="ONLINE"
+
+?
+
+"🟢 ONLINE"
+
+:
+
+"🔴 OFFLINE";
+
+});
+
+</script>
+
+
+
+
+<!-- LOAD LAST -->
+
+<script src=
+"script_v2.js">
+
+</script>
+
+
+</body>
+
+</html>
