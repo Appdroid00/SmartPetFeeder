@@ -628,3 +628,111 @@ border-top:
 1px solid #eee;
 
 }
+
+@media (max-width: 480px) {
+body{
+background:#f2f4f1;
+}
+
+.app{
+padding:10px;
+}
+
+.brand-bar{
+padding:12px 14px;
+gap:10px;
+}
+
+.brand-title{
+font-size:18px;
+}
+
+.brand-mark{
+width:28px;
+height:28px;
+}
+
+.card,
+.logs-card{
+padding:14px 14px 12px;
+border-radius:14px;
+}
+
+.device-row{
+gap:10px;
+}
+
+.device-row h3{
+font-size:16px;
+}
+
+input{
+font-size:16px;
+padding:14px 12px;
+}
+
+button{
+font-size:14px;
+padding:12px 12px;
+}
+
+.feed-button{
+gap:10px;
+}
+
+.btn-icon{
+width:24px;
+height:24px;
+}
+
+.row{
+gap:8px;
+}
+
+.status{
+min-width:62px;
+padding:6px 8px;
+font-size:11px;
+}
+
+#lastFed{
+font-size:18px;
+}
+
+.logs-header{
+font-size:17px;
+}
+
+th,
+td{
+font-size:13px;
+padding:10px 8px;
+}
+
+.table-scroll{
+max-height:220px;
+}
+
+#toast{
+max-width:min(220px, calc(100vw - 20px));
+}
+}
+
+@media (max-width: 360px) {
+.device-row{
+flex-direction:column;
+align-items:flex-start;
+}
+
+.row{
+flex-wrap:wrap;
+}
+
+.row input{
+flex:1 1 100%;
+}
+
+.status{
+margin-left:auto;
+}
+}
