@@ -1,0 +1,3 @@
+const SUPABASE_URL = "https://pkgjksqbiookypbfdeeu.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrZ2prc3FiaW9va3lwYmZkZWV1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyMTg0MTAsImV4cCI6MjA5NTc5NDQxMH0.Al5TnQdc-EioITkMcH8k_G_CCWrqm9kDuSnMFjl_UPA";
+const FEEDER_DEVICE_ID = "FEEDER001";

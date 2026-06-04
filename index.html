@@ -1,387 +1,121 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="en">
 <head>
-
-<meta name="viewport"
-content="width=device-width, initial-scale=1">
-
-<title>
-Smart Pet Feeder
-</title>
-
-<link rel="stylesheet"
-href="style.css">
-
-<link rel="manifest"
-href="manifest.json">
-
-<meta name="theme-color"
-content="#2f7a4f">
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PawTech Feeder</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#2f7a4f">
 </head>
-
-
-
 <body>
-
-
-<div class="app">
-
-
-<div class="header">
-
-🐾 Smart Pet Feeder
-
-</div>
-
-
-
-
-<!-- DEVICE -->
-
-<div class="card">
-
-<div class="device-row">
-
-<div>
-
-<small>
-
-Device
-
-</small>
-
-<h3>
-
-FEEDER001
-
-</h3>
-
-</div>
-
-
-
-<div>
-
-<small>
-
-Status
-
-</small>
-
-<h3 id="deviceStatus">
-
-🔴 OFFLINE
-
-</h3>
-
-</div>
-
-</div>
-
-</div>
-
-
-
-
-
-<!-- FEED -->
-
-<div class="card">
-
-<button
-id="feedBtn"
-class="primary">
-
-🍽 Feed Now
-
-</button>
-
-</div>
-
-
-
-
-
-<!-- LAST FED -->
-
-<div class="card">
-
-<div>
-
-Last Fed
-
-</div>
-
-<div id="lastFed">
-
-None
-
-</div>
-
-</div>
-
-
-
-
-
-
-<!-- SCHEDULE -->
-
-<div class="card">
-
-<h3>
-
-Schedule
-
-</h3>
-
-
-
-<div class="row">
-
-<input
-type="time"
-id="time1">
-
-<span
-id="status1"
-class=
-"status pending">
-
-Pending
-
-</span>
-
-</div>
-
-
-
-
-<div class="row">
-
-<input
-type="time"
-id="time2">
-
-<span
-id="status2"
-class=
-"status pending">
-
-Pending
-
-</span>
-
-</div>
-
-
-
-
-<div class="row">
-
-<input
-type="time"
-id="time3">
-
-<span
-id="status3"
-class=
-"status pending">
-
-Pending
-
-</span>
-
-</div>
-
-
-
-<button
-onclick="save()"
-id="saveBtn"
-class="primary">
-
-Save Schedule
-
-</button>
-
-</div>
-
-
-
-
-
-<!-- LOGS -->
-
-<div class="logs-card">
-
-<div class=
-"logs-header">
-
-📜 Feeding Logs
-
-</div>
-
-
-<table
-style=
-"width:100%;
-text-align:center;">
-
-<thead>
-
-<tr>
-
-<th>
-
-Type
-
-</th>
-
-<th>
-
-Date
-
-</th>
-
-<th>
-
-Time
-
-</th>
-
-</tr>
-
-</thead>
-
-
-
-<tbody
-id="feedTable">
-
-<tr>
-
-<td colspan="3">
-
-No data
-
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-</div>
-
-
-</div>
-
-
-
-
-<div id="toast">
-
-<span id="toastIcon">
-
-</span>
-
-<span id="toastText">
-
-</span>
-
-</div>
-
-
-
-
-
-<!-- FIREBASE FIRST -->
-
-<script src=
-"https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js">
-</script>
-
-
-<script src=
-"https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js">
-</script>
-
-
-
-<script>
-
-const firebaseConfig={
-
-apiKey:
-"AIzaSyD48EtXh7KIrTqM-wXzglaPXlVoQkABMjM",
-
-databaseURL:
-"https://smartpetfeeder-a7515-default-rtdb.asia-southeast1.firebasedatabase.app",
-
-projectId:
-"smartpetfeeder-a7515"
-
-};
-
-
-firebase.initializeApp(
-firebaseConfig);
-
-const db=
-firebase.database();
-
-
-
-
-// ONLINE OFFLINE
-
-db.ref(
-"devices/FEEDER001/status")
-
-.on(
-
-"value",
-
-(snapshot)=>{
-
-let status=
-snapshot.val();
-
-let txt=
-document.getElementById(
-"deviceStatus");
-
-txt.innerHTML=
-
-status=="ONLINE"
-
-?
-
-"🟢 ONLINE"
-
-:
-
-"🔴 OFFLINE";
-
-});
-
-</script>
-
-
-
-
-<!-- LOAD LAST -->
-
-<script src=
-"script_v2.js">
-
-</script>
-
-
+  <div class="app">
+    <div class="brand-bar">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+          <circle cx="6.5" cy="7" r="2.1" />
+          <circle cx="10" cy="4.4" r="1.8" />
+          <circle cx="14" cy="4.4" r="1.8" />
+          <circle cx="17.5" cy="7" r="2.1" />
+          <path d="M12 9.5c-2.9 0-5.2 1.8-5.2 4.1 0 2.2 2.3 4.2 5.2 4.2s5.2-2 5.2-4.2c0-2.3-2.3-4.1-5.2-4.1Z" />
+        </svg>
+      </span>
+      <span class="brand-title">PawTech Feeder</span>
+    </div>
+
+    <div class="card">
+      <div class="device-row">
+        <div>
+          <small>Device</small>
+          <h3 id="deviceId">FEEDER001</h3>
+        </div>
+        <div>
+          <small>Status</small>
+          <h3 id="deviceStatus">OFFLINE</h3>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <button id="feedBtn" class="primary feed-button">
+        <span class="btn-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 13c0-1.7 1.3-3 3-3h10c1.7 0 3 1.3 3 3v1c0 2.2-1.8 4-4 4H8c-2.2 0-4-1.8-4-4v-1Z" />
+            <path d="M8 10V8" />
+            <path d="M12 9V6" />
+            <path d="M16 10V8" />
+            <path d="M7 18h10" />
+          </svg>
+        </span>
+        <span>Feed Now</span>
+      </button>
+    </div>
+
+    <div class="card">
+      <div>Last Fed</div>
+      <div id="lastFed">None</div>
+    </div>
+
+    <div class="card">
+      <h3>Schedule</h3>
+
+      <div class="row">
+        <input type="time" id="time1">
+        <span id="status1" class="status pending">Pending</span>
+      </div>
+
+      <div class="row">
+        <input type="time" id="time2">
+        <span id="status2" class="status pending">Pending</span>
+      </div>
+
+      <div class="row">
+        <input type="time" id="time3">
+        <span id="status3" class="status pending">Pending</span>
+      </div>
+
+      <button id="saveBtn" class="primary">Save Schedule</button>
+    </div>
+
+    <div class="logs-card">
+      <div class="logs-header">
+        <span class="logs-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 4h9l3 3v13H6z" />
+            <path d="M15 4v3h3" />
+            <path d="M8 11h8" />
+            <path d="M8 15h8" />
+          </svg>
+        </span>
+        <span>Feeding Logs</span>
+      </div>
+
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Date</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="feedTable">
+            <tr>
+              <td colspan="3">No data</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast">
+    <span id="toastIcon"></span>
+    <span id="toastText"></span>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="script_v2.js?v=20260604-13"></script>
 </body>
-
 </html>
