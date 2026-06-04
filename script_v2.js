@@ -1,9 +1,12 @@
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let isFeeding = false;
+let isDeviceOnline = false;
 let scheduleState = ["Pending", "Pending", "Pending"];
 let feedHistory = [];
 let lastTriggerTime = ["", "", ""];
+const DEVICE_ONLINE_WINDOW_MS = 45000;
+const POST_SCHEDULE_MANUAL_BLOCK_MS = 30000;
 
 const deviceStatus = document.getElementById("deviceStatus");
 const feedBtn = document.getElementById("feedBtn");
@@ -13,6 +16,7 @@ const timeInputs = [
   document.getElementById("time2"),
   document.getElementById("time3")
 ];
+const FEED_COOLDOWN_MS = 30000;
 
 function showToast(message, type = "success") {
   const toast = document.getElementById("toast");
@@ -98,7 +102,7 @@ async function ensureRows() {
 async function loadDeviceStatus() {
   const { data, error } = await supabaseClient
     .from("devices")
-    .select("status")
+    .select("status,last_seen")
     .eq("id", FEEDER_DEVICE_ID)
     .maybeSingle();
 
@@ -107,13 +111,34 @@ async function loadDeviceStatus() {
     return;
   }
 
-  updateDeviceStatus(data?.status || "OFFLINE");
+  updateDeviceStatus(data?.status || "OFFLINE", data?.last_seen);
 }
 
-function updateDeviceStatus(status) {
-  deviceStatus.innerText = status === "ONLINE" ? "ONLINE" : "OFFLINE";
-  deviceStatus.classList.toggle("online", status === "ONLINE");
-  deviceStatus.classList.toggle("offline", status !== "ONLINE");
+function updateDeviceStatus(status, lastSeen) {
+  isDeviceOnline = status === "ONLINE" && isRecentLastSeen(lastSeen);
+
+  deviceStatus.innerText = isDeviceOnline ? "ONLINE" : "OFFLINE";
+  deviceStatus.classList.toggle("online", isDeviceOnline);
+  deviceStatus.classList.toggle("offline", !isDeviceOnline);
+}
+
+function isRecentLastSeen(lastSeen) {
+  if (!lastSeen) {
+    return false;
+  }
+
+  return Date.now() - new Date(lastSeen).getTime() < DEVICE_ONLINE_WINDOW_MS;
+}
+
+async function canWriteToDatabase() {
+  await loadDeviceStatus();
+
+  if (!isDeviceOnline) {
+    showToast("Device offline", "warning");
+    return false;
+  }
+
+  return true;
 }
 
 async function loadSchedule() {
@@ -140,6 +165,10 @@ async function loadSchedule() {
 }
 
 async function save() {
+  if (!(await canWriteToDatabase())) {
+    return;
+  }
+
   const rows = timeInputs.map((input, index) => {
     const feedTime = toDatabaseTime(input.value);
 
@@ -172,6 +201,7 @@ async function save() {
     return;
   }
 
+  await clearPendingFeedNow();
   scheduleState = rows.map(row => row.enabled ? "Scheduled" : "Pending");
   updateUI();
   showToast("Saved");
@@ -191,6 +221,35 @@ async function requestFeed() {
   }
 }
 
+async function clearPendingFeedNow() {
+  const { error } = await supabaseClient
+    .from("devices")
+    .update({
+      feed_now: false
+    })
+    .eq("id", FEEDER_DEVICE_ID);
+
+  if (error) {
+    console.error(error);
+  }
+}
+
+function getLatestFeedByType(feedType) {
+  return feedHistory.find(item => item.feed_type === feedType);
+}
+
+async function clearManualCommandAfterRecentSchedule() {
+  const latestSchedule = getLatestFeedByType("Schedule");
+
+  if (!latestSchedule) {
+    return;
+  }
+
+  if (Date.now() - new Date(latestSchedule.fed_at).getTime() < POST_SCHEDULE_MANUAL_BLOCK_MS) {
+    await clearPendingFeedNow();
+  }
+}
+
 async function addFeedLog(feedType, fedAt = new Date().toISOString()) {
   const { error } = await supabaseClient
     .from("feed_logs")
@@ -204,29 +263,16 @@ async function addFeedLog(feedType, fedAt = new Date().toISOString()) {
   }
 }
 
-async function hasRecentLog(feedType, withinMs = 12000) {
-  const { data, error } = await supabaseClient
-    .from("feed_logs")
-    .select("fed_at")
-    .eq("feed_type", feedType)
-    .order("fed_at", { ascending: false })
-    .limit(1);
-
-  if (error) {
-    throw error;
-  }
-
-  const latest = data?.[0];
-
-  if (!latest) {
-    return false;
-  }
-
-  return Date.now() - new Date(latest.fed_at).getTime() < withinMs;
-}
-
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function getLatestFeedAgeMs() {
+  if (feedHistory.length === 0) {
+    return Infinity;
+  }
+
+  return Date.now() - new Date(feedHistory[0].fed_at).getTime();
 }
 
 async function markScheduleDone(scheduleId) {
@@ -246,7 +292,13 @@ async function markScheduleDone(scheduleId) {
 async function feed() {
   if (isFeeding) return;
 
+  if (getLatestFeedAgeMs() < FEED_COOLDOWN_MS) {
+    showToast("Wait a bit before feeding again", "warning");
+    return;
+  }
+
   isFeeding = true;
+  feedBtn.disabled = true;
 
   feedBtn.innerText = "Feeding...";
   feedBtn.classList.add("feedingBtn");
@@ -254,11 +306,6 @@ async function feed() {
   try {
     await requestFeed();
     await sleep(7000);
-    const fedAt = new Date().toISOString();
-    await addFeedLog("Manual", fedAt);
-    feedHistory = [{ feed_type: "Manual", fed_at: fedAt }, ...feedHistory];
-    updateFeedTable();
-    updateLastFed();
 
     feedBtn.innerText = "Done";
     feedBtn.classList.remove("feedingBtn");
@@ -270,6 +317,7 @@ async function feed() {
       feedBtn.innerText = "Feed Now";
       feedBtn.classList.remove("doneBtn");
       isFeeding = false;
+      feedBtn.disabled = false;
     }, 3000);
 
   } catch (error) {
@@ -281,41 +329,10 @@ async function feed() {
     setTimeout(() => {
       feedBtn.innerText = "Feed Now";
       isFeeding = false;
+      feedBtn.disabled = false;
     }, 3000);
   }
 }
-
-setInterval(async () => {
-  const now = new Date().toTimeString().slice(0, 5);
-  const times = timeInputs.map(input => input.value);
-
-  for (const [i, time] of times.entries()) {
-    if (
-      time &&
-      scheduleState[i] === "Scheduled" &&
-      now === time &&
-      lastTriggerTime[i] !== now
-    ) {
-      lastTriggerTime[i] = now;
-
-      try {
-        await requestFeed();
-        await sleep(7000);
-
-        if (!(await hasRecentLog("Schedule"))) {
-          await addFeedLog("Schedule");
-        }
-
-        await markScheduleDone(i + 1);
-        await loadLogs();
-        scheduleState[i] = "Done";
-        updateUI();
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  }
-}, 1000);
 
 
 
@@ -334,6 +351,7 @@ async function loadLogs() {
   feedHistory = dedupeFeedHistory(data || []);
   updateFeedTable();
   updateLastFed();
+  await clearManualCommandAfterRecentSchedule();
 }
 
 function dedupeFeedHistory(items) {
@@ -418,7 +436,7 @@ function subscribeToRealtimeChanges() {
         table: "devices",
         filter: `id=eq.${FEEDER_DEVICE_ID}`
       },
-      payload => updateDeviceStatus(payload.new.status)
+      payload => updateDeviceStatus(payload.new.status, payload.new.last_seen)
     )
     .on(
       "postgres_changes",
@@ -451,6 +469,7 @@ async function init() {
   }
 
   await ensureRows();
+  await clearPendingFeedNow();
   await Promise.all([
     loadDeviceStatus(),
     loadSchedule(),
