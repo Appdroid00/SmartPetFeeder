@@ -1,11 +1,9 @@
 const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let isFeeding = false;
-let isDeviceOnline = false;
 let scheduleState = ["Pending", "Pending", "Pending"];
 let feedHistory = [];
 let lastTriggerTime = ["", "", ""];
-const DEVICE_ONLINE_WINDOW_MS = 45000;
 
 const deviceStatus = document.getElementById("deviceStatus");
 const feedBtn = document.getElementById("feedBtn");
@@ -100,7 +98,7 @@ async function ensureRows() {
 async function loadDeviceStatus() {
   const { data, error } = await supabaseClient
     .from("devices")
-    .select("status,last_seen")
+    .select("status")
     .eq("id", FEEDER_DEVICE_ID)
     .maybeSingle();
 
@@ -109,34 +107,13 @@ async function loadDeviceStatus() {
     return;
   }
 
-  updateDeviceStatus(data?.status || "OFFLINE", data?.last_seen);
+  updateDeviceStatus(data?.status || "OFFLINE");
 }
 
-function updateDeviceStatus(status, lastSeen) {
-  isDeviceOnline = status === "ONLINE" && isRecentLastSeen(lastSeen);
-
-  deviceStatus.innerText = isDeviceOnline ? "ONLINE" : "OFFLINE";
-  deviceStatus.classList.toggle("online", isDeviceOnline);
-  deviceStatus.classList.toggle("offline", !isDeviceOnline);
-}
-
-function isRecentLastSeen(lastSeen) {
-  if (!lastSeen) {
-    return false;
-  }
-
-  return Date.now() - new Date(lastSeen).getTime() < DEVICE_ONLINE_WINDOW_MS;
-}
-
-async function canWriteToDatabase() {
-  await loadDeviceStatus();
-
-  if (!isDeviceOnline) {
-    showToast("Device offline", "warning");
-    return false;
-  }
-
-  return true;
+function updateDeviceStatus(status) {
+  deviceStatus.innerText = status === "ONLINE" ? "ONLINE" : "OFFLINE";
+  deviceStatus.classList.toggle("online", status === "ONLINE");
+  deviceStatus.classList.toggle("offline", status !== "ONLINE");
 }
 
 async function loadSchedule() {
@@ -163,10 +140,6 @@ async function loadSchedule() {
 }
 
 async function save() {
-  if (!(await canWriteToDatabase())) {
-    return;
-  }
-
   const rows = timeInputs.map((input, index) => {
     const feedTime = toDatabaseTime(input.value);
 
@@ -272,10 +245,6 @@ async function markScheduleDone(scheduleId) {
 
 async function feed() {
   if (isFeeding) return;
-
-  if (!(await canWriteToDatabase())) {
-    return;
-  }
 
   isFeeding = true;
 
@@ -449,7 +418,7 @@ function subscribeToRealtimeChanges() {
         table: "devices",
         filter: `id=eq.${FEEDER_DEVICE_ID}`
       },
-      payload => updateDeviceStatus(payload.new.status, payload.new.last_seen)
+      payload => updateDeviceStatus(payload.new.status)
     )
     .on(
       "postgres_changes",

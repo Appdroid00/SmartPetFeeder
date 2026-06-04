@@ -635,16 +635,16 @@ background:#f2f4f1;
 }
 
 .app{
-padding:8px;
+padding:10px;
 }
 
 .brand-bar{
-padding:12px 12px;
+padding:12px 14px;
 gap:10px;
 }
 
 .brand-title{
-font-size:17px;
+font-size:18px;
 }
 
 .brand-mark{
@@ -654,22 +654,16 @@ height:28px;
 
 .card,
 .logs-card{
-padding:14px 12px 12px;
+padding:14px 14px 12px;
 border-radius:14px;
 }
 
 .device-row{
-gap:8px;
-flex-wrap:wrap;
+gap:10px;
 }
 
 .device-row h3{
 font-size:16px;
-}
-
-.device-row > div{
-flex:1 1 calc(50% - 8px);
-min-width:120px;
 }
 
 input{
@@ -693,27 +687,20 @@ height:24px;
 
 .row{
 gap:8px;
-align-items:flex-start;
-}
-
-.row input{
-min-width:0;
 }
 
 .status{
-min-width:58px;
+min-width:62px;
 padding:6px 8px;
 font-size:11px;
-flex-shrink:0;
-margin-top:10px;
 }
 
 #lastFed{
-font-size:17px;
+font-size:18px;
 }
 
 .logs-header{
-font-size:16px;
+font-size:17px;
 }
 
 th,
@@ -728,10 +715,6 @@ max-height:220px;
 
 #toast{
 max-width:min(220px, calc(100vw - 20px));
-}
-
-.logs-card{
-margin-top:16px;
 }
 }
 
@@ -751,10 +734,5 @@ flex:1 1 100%;
 
 .status{
 margin-left:auto;
-margin-top:8px;
-}
-
-.brand-title{
-font-size:16px;
 }
 }
