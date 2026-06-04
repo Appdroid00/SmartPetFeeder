@@ -204,6 +204,27 @@ async function addFeedLog(feedType, fedAt = new Date().toISOString()) {
   }
 }
 
+async function hasRecentLog(feedType, withinMs = 12000) {
+  const { data, error } = await supabaseClient
+    .from("feed_logs")
+    .select("fed_at")
+    .eq("feed_type", feedType)
+    .order("fed_at", { ascending: false })
+    .limit(1);
+
+  if (error) {
+    throw error;
+  }
+
+  const latest = data?.[0];
+
+  if (!latest) {
+    return false;
+  }
+
+  return Date.now() - new Date(latest.fed_at).getTime() < withinMs;
+}
+
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -280,13 +301,12 @@ setInterval(async () => {
       try {
         await requestFeed();
         await sleep(7000);
-        const fedAt = new Date().toISOString();
-        await addFeedLog("Schedule", fedAt);
+
+        if (!(await hasRecentLog("Schedule"))) {
+          await addFeedLog("Schedule");
+        }
 
         await markScheduleDone(i + 1);
-        feedHistory = [{ feed_type: "Schedule", fed_at: fedAt }, ...feedHistory];
-        updateFeedTable();
-        updateLastFed();
         await loadLogs();
         scheduleState[i] = "Done";
         updateUI();
@@ -311,9 +331,24 @@ async function loadLogs() {
     return;
   }
 
-  feedHistory = data || [];
+  feedHistory = dedupeFeedHistory(data || []);
   updateFeedTable();
   updateLastFed();
+}
+
+function dedupeFeedHistory(items) {
+  const seen = new Set();
+
+  return items.filter(item => {
+    const key = `${item.feed_type}-${item.fed_at}`;
+
+    if (seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+    return true;
+  });
 }
 
 function updateFeedTable() {
